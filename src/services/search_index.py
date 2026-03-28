@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import logging
 import re
+import hashlib
+from typing import TYPE_CHECKING
 
 from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 
-from ..catalog import CatalogRepository
-from ..config import Settings
-from ..models import DocumentInsight, ImageInsight, NeedProfile, Product
-from .llm import LLMGateway
+from src.config import Settings
+from src.models import DocumentInsight, ImageInsight, NeedProfile, Product
+from src.services.llm import LLMGateway
 
-_EMPTY_EXPANSION: dict[str, list[str]] = {"tags": [], "use_cases": [], "benefits": [], "image_hints": []}
+if TYPE_CHECKING:
+    from src.catalog import CatalogRepository
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ class CatalogSearchService:
         except Exception as exc:
             logger.warning("Azure AI Search query failed: %s", exc)
             return [], f"azure-datastore-unavailable ({type(exc).__name__})"
-
+        
     def sync_catalog(self) -> tuple[bool, str]:
         products = self.catalog_repository.load_products()
         if not self.settings.azure_search_ready:
@@ -75,6 +77,10 @@ class CatalogSearchService:
                 self._product_to_search_document(product, field_types)
                 for product in products
             ]
+
+            if not upload_payload:
+                return True, "Catalog is empty. Azure AI Search index was cleared and no documents were uploaded."
+
             client.upload_documents(upload_payload)
             return True, (
                 f"Cleared {len(existing_ids)} existing entries and uploaded "
@@ -403,6 +409,11 @@ class CatalogSearchService:
                 continue
             document[field_name] = value
 
+        # Azure AI Search document keys only allow letters, digits, underscore, dash, and equals.
+        # Keep catalog IDs unchanged in storage, but sanitize the search-index key during upload.
+        if "id" in document:
+            document["id"] = self._sanitize_document_key(str(document["id"]))
+
         if "content" in field_types:
             document["content"] = product.searchable_text
 
@@ -412,6 +423,14 @@ class CatalogSearchService:
                 document["contentVector"] = embedding
 
         return document
+
+    def _sanitize_document_key(self, key: str) -> str:
+        cleaned = re.sub(r"[^A-Za-z0-9_\-=]", "-", (key or "").strip())
+        cleaned = re.sub(r"-+", "-", cleaned).strip("-")
+        if not cleaned:
+            digest = hashlib.sha1((key or "").encode("utf-8")).hexdigest()[:12]
+            return f"doc-{digest}"
+        return cleaned
 
     def _join_text_list(self, value) -> str:
         if isinstance(value, list):

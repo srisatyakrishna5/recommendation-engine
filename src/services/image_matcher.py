@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ..config import Settings
-from ..models import ImageInsight
+from src.config import Settings
+from src.models import ImageInsight
 
 
 class ImageCatalogMatcher:

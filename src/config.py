@@ -7,7 +7,7 @@ import os
 
 from dotenv import load_dotenv
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT_DIR / "data"
 
 load_dotenv(ROOT_DIR / ".env", override=False)

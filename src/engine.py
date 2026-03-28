@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 import re
 from typing import Any
 
-from .catalog import CatalogRepository
-from .config import Settings
-from .models import (
+from src.catalog import CatalogRepository
+from src.config import Settings
+from src.models import (
     AgentTraceStep,
     CatalogIngestionResult,
     DocumentInsight,
@@ -16,7 +16,7 @@ from .models import (
     Recommendation,
     RecommendationBundle,
 )
-from .services import CatalogSearchService, DocumentAnalyzer, ImageCatalogMatcher, LLMGateway, SpeechTranscriber
+from src.services import CatalogSearchService, DocumentAnalyzer, ImageCatalogMatcher, LLMGateway, SpeechTranscriber
 
 
 # ---------------------------------------------------------------------------

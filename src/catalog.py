@@ -7,8 +7,9 @@ from io import StringIO
 from pathlib import Path
 from uuid import uuid4
 
-from .config import Settings
-from .models import CatalogIngestionResult, Product
+from src.config import Settings
+from src.models import CatalogIngestionResult, Product
+from src.services.document_analyzer import DocumentAnalyzer
 
 
 def _split_text_field(value: str | list[str] | None) -> list[str]:
@@ -17,13 +18,6 @@ def _split_text_field(value: str | list[str] | None) -> list[str]:
     if isinstance(value, list):
         return [item.strip() for item in value if item and item.strip()]
     return [item.strip() for item in re.split(r"[|,]", value) if item and item.strip()]
-
-
-def _parse_float(value: object) -> float:
-    if value is None:
-        return 0.0
-    cleaned = re.sub(r"[^\d.\-]", "", str(value))
-    return float(cleaned) if cleaned else 0.0
 
 
 def _slugify(value: str) -> str:
@@ -49,6 +43,10 @@ class CatalogRepository:
             return []
         raw_data = json.loads(self.settings.catalog_path.read_text(encoding="utf-8"))
         return [Product.from_dict(item) for item in raw_data]
+    
+    def load_products_from_pdf(self, raw_bytes: bytes) -> list[Product]:
+        analyzer = DocumentAnalyzer(self.settings)
+        return analyzer.analyze_pdf_bytes_for_product_load(raw_bytes)
 
     def save_products(self, products: list[Product]) -> None:
         payload = [product.to_dict() for product in products]
@@ -60,13 +58,16 @@ class CatalogRepository:
             rows = json.loads(raw_bytes.decode("utf-8"))
             if not isinstance(rows, list):
                 raise ValueError("JSON catalog must contain a list of product objects.")
+            products = [self._product_from_row(row) for row in rows]
         elif suffix == ".csv":
             reader = csv.DictReader(StringIO(raw_bytes.decode("utf-8")))
             rows = list(reader)
+            products = [self._product_from_row(row) for row in rows]
+        elif suffix == ".pdf":
+            products = self.load_products_from_pdf(raw_bytes)
         else:
-            raise ValueError("Only CSV and JSON catalogs are supported.")
+            raise ValueError("Only CSV, JSON, and PDF catalogs are supported.")
 
-        products = [self._product_from_row(row) for row in rows]
         # Filter out non-product rows (empty names, summary/statistics rows)
         products = [
             p for p in products
@@ -95,27 +96,15 @@ class CatalogRepository:
             k.strip().lower().replace(" ", "_"): v
             for k, v in row.items()
         }
-        name = str(
-            normalized.get("product_name")
-            or normalized.get("name")
-            or normalized.get("title")
-            or "Unnamed product"
-        )
+        name = str(normalized.get("product_name") or normalized.get("name") or normalized.get("title") or "Unnamed product")
         product_id = str(normalized.get("id") or normalized.get("sku") or _slugify(name))
-        return Product(
-            id=product_id,
-            sku=str(normalized.get("sku") or product_id),
-            name=name,
-            category=str(normalized.get("category") or "General"),
-            description=str(normalized.get("description") or normalized.get("summary") or ""),
-            price=_parse_float(normalized.get("price")),
-            rating=_parse_float(normalized.get("rating")),
-            tags=_split_text_field(normalized.get("tags")),
-            use_cases=_split_text_field(normalized.get("use_cases")),
-            benefits=_split_text_field(normalized.get("benefits")),
-            image_hints=_split_text_field(normalized.get("image_hints")),
-            source=str(normalized.get("source") or "uploaded-catalog"),
-        )
+        normalized.setdefault("id", product_id)
+        normalized.setdefault("sku", str(normalized.get("sku") or product_id))
+        normalized.setdefault("name", name)
+        normalized.setdefault("category", "General")
+        normalized.setdefault("description", str(normalized.get("summary") or ""))
+        normalized.setdefault("source", "uploaded-catalog")
+        return Product.from_dict(normalized)
 
     def create_manual_product(
         self,

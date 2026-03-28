@@ -1,4 +1,4 @@
-from .config import get_settings
-from .engine import RecommendationEngine
+from src.config import get_settings
+from src.engine import RecommendationEngine
 
 __all__ = ["RecommendationEngine", "get_settings"]

@@ -4,8 +4,8 @@ import json
 import logging
 import re
 
-from ..config import Settings
-from ..models import DocumentInsight, ImageInsight, NeedProfile, Product
+from src.config import Settings
+from src.models import DocumentInsight, ImageInsight, NeedProfile, Product
 
 logger = logging.getLogger(__name__)
 

@@ -13,6 +13,21 @@ def _normalize_text_list(values: list[str] | str | None) -> list[str]:
     return [value.strip() for value in values if value and value.strip()]
 
 
+def _parse_numeric(value: object) -> float:
+    """Parse a numeric value, handling currency symbols and thousand separators."""
+    if value is None:
+        return 0.0
+    try:
+        str_value = str(value).strip()
+        # Remove common currency symbols and thousand separators
+        cleaned = str_value.replace('$', '').replace(',', '')
+        # Remove any remaining non-numeric characters except dot and negative sign
+        cleaned = re.sub(r"[^\d.\-]", "", cleaned)
+        return float(cleaned) if cleaned else 0.0
+    except (ValueError, TypeError):
+        return 0.0
+
+
 @dataclass(slots=True)
 class Product:
     id: str
@@ -65,8 +80,8 @@ class Product:
             name=str(data["name"]),
             category=str(data.get("category", "General")),
             description=str(data.get("description", "")),
-            price=float(data.get("price", 0.0)),
-            rating=float(data.get("rating", 0.0)),
+            price=_parse_numeric(data.get("price", 0.0)),
+            rating=_parse_numeric(data.get("rating", 0.0)),
             tags=_normalize_text_list(data.get("tags")),
             use_cases=_normalize_text_list(data.get("use_cases")),
             benefits=_normalize_text_list(data.get("benefits")),

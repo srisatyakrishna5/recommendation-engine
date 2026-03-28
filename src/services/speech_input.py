@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from ..config import Settings
+from src.config import Settings
 
 
 class SpeechTranscriber:
