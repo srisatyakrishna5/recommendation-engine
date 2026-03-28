@@ -1,54 +1,83 @@
-# Azure Product Recommendation Swarm
+# Azure Solutions Recommender
 
-This repository contains a Streamlit prototype for an Azure-native product recommendation engine. The app accepts typed requests, optional speech input, and uploaded images, then routes the request through a catalog-grounded recommendation pipeline.
+A Streamlit application that recommends Azure + Microsoft AI services for solution architects. All recommendations are **grounded at query time** in official Microsoft documentation — no local catalogs or static inventories.
 
-## What is included
+## Features
 
-- Streamlit UI for customer and admin workflows
-- Local catalog persistence with Azure AI Search sync support
-- Azure OpenAI GPT-4o powered need interpretation and recommendation guidance
-- Azure Document Intelligence wrapper for PDF analysis
-- Azure Speech wrapper for voice input transcription
-- Azure Vision wrapper for image caption and tag extraction
+- **Live retrieval** via the [Microsoft Learn MCP Server](https://learn.microsoft.com/training/support/mcp) (`microsoft_docs_search`, `microsoft_docs_fetch`, `microsoft_code_sample_search`)
+- **Streaming LLM recommendations** using Azure OpenAI or standard OpenAI
+- **Strict 6-section output format**: Use-case understanding, Service shortlist, Reference architecture, Alternatives & tradeoffs, WAF checklist, Next steps
+- **Mermaid architecture diagrams** generated on demand and rendered in-app
+- **Responsible AI** guardrails baked into the system prompt (no Azure AI Search, source citations required, tentative labeling when grounding is thin)
 
-## Pipeline design
+## Prerequisites
 
-The recommendation flow is implemented as a staged recommendation pipeline:
+- Python 3.10+
+- An Azure OpenAI resource **or** an OpenAI API key
+- (Optional) A `.env` file for persistent configuration
 
-1. `QueryInterpreter` extracts the shopper's problem, budget, and buying constraints.
-2. `CatalogSearch` retrieves products from Azure AI Search.
-3. `ValueScorer` reranks products for cost effectiveness.
-4. `Explainer` explains why each product fits and how it solves the user's problem.
-5. `Validator` ensures only catalog-backed recommendations are returned.
+## Quick Start
 
-## Azure services expected
+```bash
+# 1. Create and activate a virtual environment
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # macOS / Linux
 
-- Azure OpenAI with a `gpt-4o` deployment
-- Azure AI Search for catalog retrieval and vector-ready indexing
-- Azure Document Intelligence for PDF ingestion
-- Azure AI Vision for image understanding
-- Azure Speech Service for speech-to-text
+# 2. Install dependencies
+pip install -r requirements.txt
 
-## Run locally
+# 3. Configure your LLM provider
+copy .env.example .env          # then edit .env with your keys
 
-1. Copy `.env.template` to `.env` and add your Azure settings.
-2. Install dependencies into the existing virtual environment.
-3. Run the Streamlit app.
-
-```powershell
-.venv\Scripts\python -m pip install -r requirements.txt
-$env:PYTHONPATH = "src"
-.venv\Scripts\python -m streamlit run app.py
+# 4. Run the app
+$env:PYTHONPATH = "src"         # PowerShell
+streamlit run app.py
 ```
 
-## Admin workflow
+You can also configure API keys directly in the Streamlit sidebar at runtime.
 
-- Upload a CSV or JSON product catalog
-- Add manual products through the UI
-- Push the active catalog into Azure AI Search when the search settings are present
+## Project Structure
 
-## Notes
+```
+app.py                                  # Streamlit entrypoint
+requirements.txt                        # Python dependencies
+.env.example                            # Environment variable template
+src/
+  recommendation_engine/
+    __init__.py                         # Package exports
+    settings.py                         # Configuration (env vars + overrides)
+    retriever.py                        # Microsoft Learn MCP retrieval layer
+    prompts.py                          # System prompts & templates
+    recommender.py                      # LLM orchestration (streaming)
+```
 
-- Product retrieval depends on Azure AI Search. If the search datastore is unavailable, the app returns an explicit unavailability message instead of falling back to local catalog search.
-- PDF analysis requires Azure Document Intelligence.
-- Image-based matching requires Azure AI Vision. The app returns an explicit no-match response instead of using local image heuristics.
+## Architecture
+
+```
+User (Streamlit UI)
+  |
+  v
+AzureRecommender
+  |-- MicrosoftLearnRetriever (MCP Python SDK)
+  |     |-- microsoft_docs_search   (semantic search over MS Learn)
+  |     |-- microsoft_docs_fetch     (full page as markdown)
+  |     |-- Endpoint: https://learn.microsoft.com/api/mcp
+  |
+  |-- Azure OpenAI / OpenAI (streaming chat completions)
+  |
+  v
+Structured Recommendation (6 sections) + Optional Mermaid Diagram
+```
+
+## Configuration Reference
+
+| Variable | Description | Default |
+|---|---|---|
+| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI resource endpoint | — |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key | — |
+| `AZURE_OPENAI_DEPLOYMENT` | Deployment / model name | `gpt-4o` |
+| `AZURE_OPENAI_API_VERSION` | API version | `2024-12-01-preview` |
+| `OPENAI_API_KEY` | Standard OpenAI API key | — |
+| `OPENAI_MODEL` | OpenAI model name | `gpt-4o` |
+| `MAX_SEARCH_RESULTS` | Results per retrieval source | `5` |
