@@ -1,8 +1,10 @@
 .venv
+.vscode
 
-.env
 __pycache__/
 .pytest_cache/
 .mypy_cache/
 .streamlit/
 data/product_catalog.json
+
+.env
