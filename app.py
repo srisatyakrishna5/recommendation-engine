@@ -139,6 +139,21 @@ def _chips_html(items: list[str], chip_kind: str) -> str:
     )
 
 
+def _guidance_markdown(items: list[str]) -> str:
+    points: list[str] = []
+    for raw in items:
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        if " - " in text and text.startswith("-"):
+            text = text[1:].strip()
+            parts = [part.strip(" .") for part in text.split(" - ") if part.strip(" .")]
+            points.extend(parts)
+        else:
+            points.append(text.lstrip("-* ").strip())
+    return "\n".join(f"- {point}" for point in points if point)
+
+
 def _render_hero(settings: Settings) -> None:
     st.title(settings.app_title)
     st.caption(
@@ -173,10 +188,9 @@ def _render_recommendations(bundle) -> None:
     )
 
     if bundle.guidance:
-        st.markdown(
-            f'<div class="rec-guidance"><strong>Guidance</strong><br/>{_bullet_list(bundle.guidance)}</div>',
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
+            st.markdown("**Guidance**")
+            st.markdown(_guidance_markdown(bundle.guidance))
 
     if not bundle.recommendations:
         st.warning("No catalog-matched products could be verified for this request.")

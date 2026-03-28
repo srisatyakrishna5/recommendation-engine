@@ -83,6 +83,10 @@ RULES:
 0. Stay strictly grounded in the provided products payload. Do not invent brands, specs, prices, warranties, or capabilities that are not present in the payload.
 1. The summary should be 2-3 sentences that directly address the user's original need and explain how the recommended products solve it.
 2. guidance is a list of 2-4 actionable, practical tips — NOT generic filler.
+    - Return one tip per list item.
+    - Do NOT combine multiple tips in a single string.
+    - Do NOT prefix tips with '-', '*', or numbering.
+    - Keep normal sentence case and punctuation.
    Good: "The XYZ Vacuum has a HEPA filter ideal for allergy sufferers — pair it with replacement filters for long-term savings."
    Bad: "Consider your needs carefully before purchasing."
 3. per_product maps each product ID to:
@@ -421,7 +425,7 @@ class LLMGateway:
         guidance_raw = payload.get("guidance")
         guidance = []
         if isinstance(guidance_raw, list):
-            guidance = self._clean_list([str(item) for item in guidance_raw], limit=4)
+            guidance = self._normalize_guidance_items([str(item) for item in guidance_raw], limit=4)
         if not guidance:
             guidance = list(fallback["guidance"])
 
@@ -512,6 +516,37 @@ class LLMGateway:
             if len(cleaned) >= limit:
                 break
         return cleaned
+
+    def _normalize_guidance_items(self, values: list[str], limit: int) -> list[str]:
+        normalized: list[str] = []
+        seen: set[str] = set()
+
+        for raw in values:
+            text = re.sub(r"\s+", " ", str(raw or "")).strip()
+            if not text:
+                continue
+
+            # Handle cases where the model packs multiple '-' bullets into one string.
+            if " - " in text:
+                if text.startswith("- "):
+                    text = text[2:]
+                candidates = [part.strip(" .") for part in re.split(r"\s+-\s+", text) if part.strip(" .")]
+            else:
+                candidates = [text.lstrip("-* ").strip()]
+
+            for candidate in candidates:
+                compact = re.sub(r"\s+", " ", candidate).strip()
+                if len(compact) < 3:
+                    continue
+                dedupe_key = compact.lower()
+                if dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+                normalized.append(compact)
+                if len(normalized) >= limit:
+                    return normalized
+
+        return normalized
 
 
 
