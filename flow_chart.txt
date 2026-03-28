@@ -1,0 +1,52 @@
+A[User opens Streamlit app] --> B{Choose tab}
+B --> C[Customer Assistant]
+B --> D[Admin Catalog]
+B --> E[Architecture]
+
+C --> C1[Enter text query]
+C --> C2[Optional voice input]
+C --> C3[Optional image upload]
+C2 --> C4[SpeechTranscriber via Azure Speech]
+C3 --> C5[ImageCatalogMatcher via Azure Vision]
+C1 --> C6[RecommendationEngine.recommend]
+C4 --> C6
+C5 --> C6
+
+C6 --> F[LLMGateway interpret_query]
+F --> G[NeedProfile + search expansion terms]
+G --> H[CatalogSearchService search_products]
+H --> I{Azure AI Search available?}
+
+I -- No --> J[Return datastore unavailable guidance]
+J --> K[UI shows no recommendations + guidance + trace]
+
+I -- Yes --> L[Run Azure AI Search query]
+L --> M{Products found?}
+M -- No --> N[Return no-match guidance]
+N --> K
+M -- Yes --> O[ValueScorer rank + filter by score threshold]
+
+O --> P{Image provided and analyzed?}
+P -- Yes --> Q[LLM image-to-product matching filter]
+P -- No --> R[Skip image filter]
+Q --> S{Any products remain?}
+S -- No --> T[Return no-match image guidance]
+T --> K
+S -- Yes --> U[LLMGateway explain_recommendations]
+R --> U
+
+U --> V[Build RecommendationBundle]
+V --> W[UI renders summary, guidance, cards, trace, extracted context]
+
+D --> D1[View local catalog rows]
+D --> D2[Import CSV/JSON catalog]
+D --> D3[Add manual product]
+D --> D4[Sync catalog to Azure AI Search]
+D2 --> D5[CatalogRepository import + persist local data]
+D3 --> D5
+D5 --> D4
+D4 --> D6{Sync success?}
+D6 -- Yes --> D7[Show success message]
+D6 -- No --> D8[Show sync failure/info message]
+
+E --> E1[Display architecture and environment reference]
