@@ -23,6 +23,103 @@ def _bullet_list(items: list[str]) -> str:
     return "\n".join(f"- {item}" for item in items)
 
 
+def _inject_brand_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        .brand-hero {
+            border: 1px solid #d7e4f6;
+            border-radius: 16px;
+            padding: 1rem 1.15rem;
+            margin: 0.2rem 0 0.9rem 0;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 8px 20px rgba(15, 42, 77, 0.06);
+        }
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 0.45rem;
+        }
+        .brand-mark {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.88rem;
+            letter-spacing: 0.04em;
+            color: #fff;
+            background: linear-gradient(135deg, #0f5ea6 0%, #1d7bd7 100%);
+            box-shadow: 0 8px 16px rgba(22, 96, 166, 0.28);
+        }
+        .brand-kicker {
+            display: inline-block;
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #1b4f89;
+            background: #eaf3ff;
+            border: 1px solid #cfe2ff;
+            padding: 0.16rem 0.48rem;
+            border-radius: 999px;
+            margin-bottom: 0.22rem;
+        }
+        .brand-title {
+            margin: 0;
+            color: #122b4a;
+            font-size: 1.42rem;
+            font-weight: 750;
+            line-height: 1.15;
+        }
+        .brand-subtitle {
+            margin: 0.3rem 0 0.75rem 0;
+            color: #486382;
+            font-size: 0.92rem;
+        }
+        .brand-statuses {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+        .brand-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            padding: 0.22rem 0.55rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+        .brand-status-pill.ready {
+            background: #eafcf3;
+            color: #116648;
+            border-color: #cfeedd;
+        }
+        .brand-status-pill.offline {
+            background: #fff1f2;
+            color: #9f1239;
+            border-color: #fecdd3;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _app_initials(title: str) -> str:
+    words = [segment for segment in title.split() if segment]
+    if not words:
+        return "RE"
+    if len(words) == 1:
+        return words[0][:2].upper()
+    return (words[0][0] + words[1][0]).upper()
+
+
 def _inject_recommendation_styles() -> None:
     st.markdown(
         """
@@ -155,23 +252,38 @@ def _guidance_markdown(items: list[str]) -> str:
 
 
 def _render_hero(settings: Settings) -> None:
-    st.title(settings.app_title)
-    st.caption(
-        "A product recommendation for text, voice, image, and catalog-grounded search."
-    )
-
-    status_columns = st.columns(5)
+    _inject_brand_styles()
     service_statuses = [
         ("OpenAI", settings.azure_openai_ready),
         ("Search", settings.azure_search_ready),
         ("Vision", settings.vision_ready),
         ("Speech", settings.speech_ready),
-        ("Document Intelligence", settings.document_intelligence_ready)
+        ("Doc Intelligence", settings.document_intelligence_ready),
     ]
-    for column, (label, enabled) in zip(status_columns, service_statuses):
-        with column:
-            state = ":blue[Ready]" if enabled else ":red[Offline]"
-            st.markdown(f"**{label}**  \n{state}")
+    status_pills = "".join(
+        (
+            f'<span class="brand-status-pill {"ready" if enabled else "offline"}">' 
+            f'{html.escape(label)}: {"Ready" if enabled else "Offline"}</span>'
+        )
+        for label, enabled in service_statuses
+    )
+    st.markdown(
+        (
+            '<section class="brand-hero">'
+            '<div class="brand-row">'
+            f'<div class="brand-mark">{html.escape(_app_initials(settings.app_title))}</div>'
+            '<div>'
+            f'<h1 class="brand-title">{html.escape(settings.app_title)}</h1>'
+            '</div>'
+            '</div>'
+            '<p class="brand-subtitle">'
+            'Intelligent product recommendations powered by multimodal understanding and catalog-grounded retrieval.'
+            '</p>'
+            f'<div class="brand-statuses">{status_pills}</div>'
+            '</section>'
+        ),
+        unsafe_allow_html=True,
+    )
 
     st.divider()
 
