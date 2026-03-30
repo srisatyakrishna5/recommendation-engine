@@ -22,16 +22,18 @@ class ImageCatalogMatcher:
             from azure.ai.vision.imageanalysis.models import VisualFeatures
             from azure.core.credentials import AzureKeyCredential
 
-            client = ImageAnalysisClient(
-                endpoint=self.settings.vision_endpoint,
-                credential=AzureKeyCredential(self.settings.vision_key),
-            )
-            result = client.analyze(
-                image_data=raw_bytes,
-                visual_features=[VisualFeatures.CAPTION, VisualFeatures.TAGS],
-                language="en",
-                gender_neutral_caption=True,                
-            )
+            # TODO: Uncomment to enable analyze the image for multimodal search
+            # client = ImageAnalysisClient(
+            #     endpoint=self.settings.vision_endpoint,
+            #     credential=AzureKeyCredential(self.settings.vision_key),
+            # )
+            # result = client.analyze(
+            #     image_data=raw_bytes,
+            #     visual_features=[VisualFeatures.CAPTION, VisualFeatures.TAGS],
+            #     language="en",
+            #     gender_neutral_caption=True,                
+            # )
+
             description = getattr(getattr(result, "caption", None), "text", "").strip()
             tags = [tag.name for tag in getattr(result, "tags", []) if getattr(tag, "name", None)]
             confidence = float(getattr(getattr(result, "caption", None), "confidence", 0.0))

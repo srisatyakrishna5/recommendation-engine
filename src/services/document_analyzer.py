@@ -18,15 +18,17 @@ class DocumentAnalyzer:
         self.settings = settings
 
     def analyze_pdf_bytes_for_product_load(self, raw_bytes: bytes) -> list[Product]:
-        document_intelligence_client = DocumentIntelligenceClient(
-            endpoint=self.settings.document_intelligence_endpoint,
-            credential=AzureKeyCredential(self.settings.document_intelligence_key),
-        )
-        poller = document_intelligence_client.begin_analyze_document(
-            "prebuilt-layout",
-            AnalyzeDocumentRequest(bytes_source=raw_bytes),
-        )
-        result = poller.result()
+        # TODO: Uncomment below code to analyze PDF and extract product catalog information from it.
+        # document_intelligence_client = DocumentIntelligenceClient(
+        #     endpoint=self.settings.document_intelligence_endpoint,
+        #     credential=AzureKeyCredential(self.settings.document_intelligence_key),
+        # )
+        # poller = document_intelligence_client.begin_analyze_document(
+        #     "prebuilt-layout",
+        #     AnalyzeDocumentRequest(bytes_source=raw_bytes),
+        # )
+        # result = poller.result()
+        
         return self._extract_products_from_tables(result)
 
     def _extract_products_from_tables(self, result) -> list[Product]:

@@ -22,13 +22,15 @@ class SpeechTranscriber:
                 handle.write(raw_bytes)
                 temp_name = handle.name
 
-            speech_config = speechsdk.SpeechConfig(
-                subscription=self.settings.speech_key,
-                region=self.settings.speech_region,
-            )
-            audio_config = speechsdk.audio.AudioConfig(filename=temp_name)
-            recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
-            result = recognizer.recognize_once()
+            # TODO: Uncomment below code to enable speech transcription
+            # speech_config = speechsdk.SpeechConfig(
+            #     subscription=self.settings.speech_key,
+            #     region=self.settings.speech_region,
+            # )
+            # audio_config = speechsdk.audio.AudioConfig(filename=temp_name)
+            # recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
+            # result = recognizer.recognize_once()
+            
             if result.reason == speechsdk.ResultReason.RecognizedSpeech:
                 return result.text.strip()
             return None

@@ -190,15 +190,17 @@ class LLMGateway:
             indent=2,
         )
         try:
-            response = self._client.chat.completions.create(
-                model=self.settings.azure_openai_deployment,
-                temperature=0.2,
-                response_format={"type": "json_object"},
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-            )
+            # TODO: Uncomment below code to enable LLM interpret user natural language query
+            # response = self._client.chat.completions.create(
+            #     model=self.settings.azure_openai_deployment,
+            #     temperature=0.2,
+            #     response_format={"type": "json_object"},
+            #     messages=[
+            #         {"role": "system", "content": system_prompt},
+            #         {"role": "user", "content": user_prompt},
+            #     ],
+            # )
+
             payload = json.loads(response.choices[0].message.content)
             profile = NeedProfile(
                 problem_statement=str(payload.get("problem_statement") or bare_profile.problem_statement),
@@ -252,15 +254,17 @@ class LLMGateway:
             indent=2,
         )
         try:
-            response = self._client.chat.completions.create(
-                model=self.settings.azure_openai_deployment,
-                temperature=0.2,
-                response_format={"type": "json_object"},
-                messages=[
-                    {"role": "system", "content": _EXPLAIN_SYSTEM},
-                    {"role": "user", "content": user_prompt},
-                ],
-            )
+            # TODO: Uncomment below to enable LLM explain product recommendations based on user query
+            # response = self._client.chat.completions.create(
+            #     model=self.settings.azure_openai_deployment,
+            #     temperature=0.2,
+            #     response_format={"type": "json_object"},
+            #     messages=[
+            #         {"role": "system", "content": _EXPLAIN_SYSTEM},
+            #         {"role": "user", "content": user_prompt},
+            #     ],
+            # )
+
             payload = json.loads(response.choices[0].message.content)
             return self._normalize_explanation_payload(payload, recommendations, need_profile)
         except Exception as exc:

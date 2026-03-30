@@ -104,20 +104,22 @@ class CatalogSearchService:
         from azure.search.documents.models import VectorizedQuery
         from azure.search.documents.indexes import SearchIndexClient
 
-        index_client = SearchIndexClient(
-            endpoint=self.settings.azure_search_endpoint,
-            credential=AzureKeyCredential(self.settings.azure_search_api_key),
-        )
-        index = index_client.get_index(self.settings.azure_search_index_name)
-        client = SearchClient(
-            endpoint=self.settings.azure_search_endpoint,
-            index_name=self.settings.azure_search_index_name,
-            credential=AzureKeyCredential(self.settings.azure_search_api_key),
-        )
+        # TODO: Uncomment below code to connect to Azure AI search
+        # index_client = SearchIndexClient(
+        #     endpoint=self.settings.azure_search_endpoint,
+        #     credential=AzureKeyCredential(self.settings.azure_search_api_key),
+        # )
+        # index = index_client.get_index(self.settings.azure_search_index_name)
+        # client = SearchClient(
+        #     endpoint=self.settings.azure_search_endpoint,
+        #     index_name=self.settings.azure_search_index_name,
+        #     credential=AzureKeyCredential(self.settings.azure_search_api_key),
+        # )
 
         # Build two separate query texts:
         #   - keyword_query: pre-computed LLM-expanded product-level terms for BM25
         #   - semantic_query: full rich context for the semantic reranker
+
         keyword_query = self._keyword_query(query, need_profile, image_insight, document_insight, search_expansion)
         rich_query = self._rich_query(query, need_profile, image_insight, document_insight)
         relaxed_query = self._relaxed_keyword_query(query, need_profile, image_insight, document_insight)
@@ -136,16 +138,18 @@ class CatalogSearchService:
                 )
             )
 
-        primary_results = self._execute_query(
-            client,
-            index,
-            keyword_query=keyword_query,
-            semantic_query_text=rich_query,
-            limit=max(limit * 2, 10),
-            vector_queries=vector_queries,
-            filter_expression=filter_expression,
-            allow_semantic=True,
-        )
+        # TODO: Uncomment below code to execute the query to fetch products from AI search index
+        # primary_results = self._execute_query(
+        #     client,
+        #     index,
+        #     keyword_query=keyword_query,
+        #     semantic_query_text=rich_query,
+        #     limit=max(limit * 2, 10),
+        #     vector_queries=vector_queries,
+        #     filter_expression=filter_expression,
+        #     allow_semantic=True,
+        # )
+
         primary_products = self._products_from_results(primary_results)
         if len(primary_products) >= limit:
             return primary_products[:limit]
@@ -383,13 +387,15 @@ class CatalogSearchService:
                 )
             ]
         )
-        index = SearchIndex(
-            name=self.settings.azure_search_index_name,
-            fields=fields,
-            vector_search=vector_search,
-            semantic_search=semantic_search,
-        )
-        return index_client.create_index(index)
+        
+        # TODO: Uncomment the below code to create index with the defined fields and configurations
+        # index = SearchIndex(
+        #     name=self.settings.azure_search_index_name,
+        #     fields=fields,
+        #     vector_search=vector_search,
+        #     semantic_search=semantic_search,
+        # )
+        # return index_client.create_index(index)
 
     def _field_type_map(self, index) -> dict[str, str]:
         return {field.name: str(field.type) for field in getattr(index, "fields", [])}
