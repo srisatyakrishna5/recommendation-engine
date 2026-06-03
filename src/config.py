@@ -60,7 +60,7 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings(
-        app_title=os.getenv("APP_TITLE", "Azure Product Recommendation Engine"),
+        app_title=os.getenv("APP_TITLE", "Product Recommendation Engine"),
         environment=os.getenv("APP_ENV", "Development"),
         root_dir=ROOT_DIR,
         data_dir=DATA_DIR,

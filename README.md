@@ -1,4 +1,4 @@
-# Azure Product Recommendation Swarm
+# Product Recommendation Engine
 
 Streamlit prototype for an Azure-native product recommendation workflow. The application accepts text, optional voice input, and optional image input, then returns catalog-grounded recommendations with transparent pipeline trace details.
 

@@ -1,4 +1,4 @@
-# Azure Product Recommendation Swarm
+# Product Recommendation Engine
 
 Step-by-step lab manual to set up, access, and run the application.
 
