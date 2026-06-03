@@ -29,22 +29,40 @@ The recommendation flow is implemented as staged agents:
 - Azure AI Search service (required for retrieval)
 - Optional Azure services: OpenAI, Vision, Speech, Document Intelligence
 
-## Local Setup
+## Step-by-Step Setup and Run
 
-1. Clone the repository.
-2. Create and activate a virtual environment.
-3. Install dependencies.
-4. Create `.env` from `.env.template`.
+### Step 1: Get the project
+
+If you do not already have the repository locally:
+
+```powershell
+git clone https://github.com/srisatyakrishna5/recommendation-engine.git
+cd recommendation-engine
+```
+
+### Step 2: Create and activate virtual environment
 
 ```powershell
 python -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
-.\.venv\Scripts\python -m pip install -r requirements.txt
-Copy-Item .env.template .env
 ```
 
-## Environment Variables
+Expected result: your terminal prompt shows `(.venv)`.
+
+### Step 3: Install dependencies
+
+```powershell
+.\.venv\Scripts\python -m pip install -r requirements.txt
+```
+
+### Step 4: Configure environment variables
+
+Create `.env` from template:
+
+```powershell
+Copy-Item .env.template .env
+```
 
 Minimum required keys in `.env`:
 
@@ -66,29 +84,40 @@ Optional keys for richer features:
 - `AZURE_SPEECH_KEY`
 - `AZURE_SPEECH_REGION`
 
-## Run the App
+### Step 5: Run the app
 
 ```powershell
 $env:PYTHONPATH = "src"
 .\.venv\Scripts\python -m streamlit run app.py
 ```
 
-Open `http://localhost:8501`.
+Expected result:
 
-You can also use the VS Code task `Run Streamlit Prototype`.
+- Streamlit starts without error.
+- The local URL `http://localhost:8501` is shown.
+
+### Step 6: Access and validate
+
+1. Open `http://localhost:8501` in browser.
+2. In Customer Assistant, enter: `Suggest affordable products for cleaning kitchen floors.`
+3. Click **Get Personalized Recommendations**.
+4. Confirm summary, product cards, and processing trace are visible.
+
+You can also start from VS Code using task **Run Streamlit Prototype**.
 
 ## Lab Manual
 
 - Offline text manual: [LAB_MANUAL.txt](LAB_MANUAL.txt)
 - GitHub Pages manual source: [docs/index.md](docs/index.md)
+- Live GitHub Pages manual: [https://srisatyakrishna5.github.io/recommendation-engine/](https://srisatyakrishna5.github.io/recommendation-engine/)
 
 ## Publish the Manual with GitHub Pages
 
-1. Push this repository to GitHub.
-2. Open repository `Settings` > `Pages`.
-3. Under `Build and deployment`, select `Deploy from a branch`.
-4. Select branch `main` and folder `/docs`.
-5. Save and wait for deployment.
+1. Edit [docs/index.md](docs/index.md).
+2. Commit and push to branch `main`.
+3. Open repository `Settings` > `Pages`.
+4. Ensure source is `Deploy from a branch`, branch `main`, folder `/docs`.
+5. Wait for deployment, then refresh the live URL.
 
 Your site URL will be:
 
@@ -108,3 +137,4 @@ Your site URL will be:
 - Vision-based matching requires Azure AI Vision.
 - Voice transcription requires Azure Speech.
 - PDF ingestion requires Azure Document Intelligence.
+- Do not commit `.env` or any credential values.

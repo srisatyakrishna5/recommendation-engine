@@ -3,56 +3,32 @@ AZURE PRODUCT RECOMMENDATION SWARM - LAB MANUAL
 Last updated: 2026-06-03
 
 ====================================================================
-1) OBJECTIVE
+1) START HERE
 ====================================================================
 
-This lab helps you run and operate the Azure Product Recommendation Swarm.
-By the end, you will be able to:
-- Configure the application environment.
-- Launch the Streamlit UI locally.
-- Use Customer Assistant and Admin Catalog workflows.
-- Publish a web version of this manual using GitHub Pages.
+This is an execution-focused lab manual to set up, access, and run the app.
 
+When you finish this manual, you will have:
+1. A local environment configured.
+2. The app running in Streamlit.
+3. A validated recommendation workflow.
 
-====================================================================
-2) APPLICATION SUMMARY
-====================================================================
-
-This project is a Streamlit-based recommendation application that can process:
-- Text requests.
-- Optional voice input (Azure Speech).
-- Optional image context (Azure Vision).
-
-The app currently has two tabs:
-1. Customer Assistant
-   - Enter needs and request recommendations.
-   - Optionally provide voice or image context.
-2. Admin Catalog
-   - Review catalog products.
-   - Import catalog from CSV, JSON, or PDF.
-   - Add products manually.
-   - Sync catalog to Azure AI Search.
-
-Core behavior:
-- Recommendations are catalog-grounded.
-- If Azure AI Search is unavailable, the app returns a clear no-data-store message.
-- If image analysis fails, the app returns a grounded no-match response instead of guessing.
+Estimated time: 15 to 25 minutes.
 
 
 ====================================================================
-3) PREREQUISITES
+2) PREREQUISITES
 ====================================================================
 
 Required:
 - Windows PowerShell
-- Python 3.10+
-- Internet access
-- Project folder checked out locally
+- Python 3.10 or newer
+- Internet connection
 
 Required for recommendation retrieval:
 - Azure AI Search endpoint, key, and index name
 
-Optional for richer experience:
+Optional for advanced features:
 - Azure OpenAI
 - Azure AI Vision
 - Azure Speech
@@ -60,48 +36,65 @@ Optional for richer experience:
 
 
 ====================================================================
-4) IMPORTANT FILES
+3) STEP 1 - GET THE PROJECT
 ====================================================================
 
-Main files you will use:
-- app.py
-- requirements.txt
-- .env.template
-- .env
-- data\product_catalog.json
-- README.md
-- docs\index.md
+If you already have the project folder locally, continue to Step 2.
 
+If not, run:
 
-====================================================================
-5) LOCAL SETUP
-====================================================================
+git clone https://github.com/srisatyakrishna5/recommendation-engine.git
+cd recommendation-engine
 
-From the project root in PowerShell:
-
-1. Check Python
-   python --version
-
-2. Create virtual environment (if missing)
-   python -m venv .venv
-
-3. Allow script execution for this terminal session (if needed)
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-
-4. Activate environment
-   .\.venv\Scripts\Activate.ps1
-
-5. Install dependencies
-   .\.venv\Scripts\python -m pip install -r requirements.txt
+Expected result:
+- You are in the project root folder.
+- You can see app.py, requirements.txt, and src folder.
 
 
 ====================================================================
-6) ENVIRONMENT CONFIGURATION
+4) STEP 2 - CREATE AND ACTIVATE VIRTUAL ENVIRONMENT
 ====================================================================
 
-Create .env from .env.template and fill values.
+Run from project root:
 
-Minimum keys required for retrieval:
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\.venv\Scripts\Activate.ps1
+
+Expected result:
+- Terminal prompt shows (.venv)
+
+If activation fails due to policy, run the policy command again and retry activation.
+
+
+====================================================================
+5) STEP 3 - INSTALL DEPENDENCIES
+====================================================================
+
+Run:
+
+.\.venv\Scripts\python -m pip install -r requirements.txt
+
+Expected result:
+- Dependencies install without errors.
+- streamlit package is available in .venv.
+
+Optional validation:
+
+.\.venv\Scripts\python -m pip show streamlit
+
+
+====================================================================
+6) STEP 4 - CONFIGURE ENVIRONMENT FILE
+====================================================================
+
+Create .env from template:
+
+Copy-Item .env.template .env
+
+Open .env and set values.
+
+Minimum required keys:
 - AZURE_SEARCH_ENDPOINT
 - AZURE_SEARCH_API_KEY
 - AZURE_SEARCH_INDEX_NAME
@@ -119,154 +112,131 @@ Optional keys:
 - AZURE_SPEECH_KEY
 - AZURE_SPEECH_REGION
 
-Security note:
-- Never commit .env.
-- Do not share screenshots containing API keys.
+Security rules:
+- Never commit .env
+- Never expose secrets in screenshots or logs
 
 
 ====================================================================
-7) RUN THE APPLICATION
+7) STEP 5 - RUN THE APPLICATION
 ====================================================================
 
-Option A: VS Code task
-1. Open Command Palette.
-2. Run "Tasks: Run Task".
-3. Select "Run Streamlit Prototype".
+Run:
 
-Option B: PowerShell commands
-1. Set module path
-   $env:PYTHONPATH = "src"
-
-2. Start Streamlit
-   .\.venv\Scripts\python -m streamlit run app.py
+$env:PYTHONPATH = "src"
+.\.venv\Scripts\python -m streamlit run app.py
 
 Expected result:
-- The app is available at http://localhost:8501
+- Streamlit starts without errors.
+- Local URL appears, usually http://localhost:8501
+
+Alternative in VS Code:
+1. Open Command Palette.
+2. Run Tasks: Run Task.
+3. Select Run Streamlit Prototype.
 
 
 ====================================================================
-8) CUSTOMER ASSISTANT WORKFLOW
+8) STEP 6 - ACCESS THE APPLICATION
 ====================================================================
 
-1. Enter a request in plain language.
-2. Optionally upload an image.
-3. Optionally record voice input.
-4. Click "Get Personalized Recommendations".
-5. Review:
-   - Summary and guidance
-   - Product cards (price, rating, value score)
-   - Processing trace and extracted context
+Open in browser:
+- http://localhost:8501
+
+Expected UI:
+- Header with service readiness indicators.
+- Customer Assistant tab.
+- Admin Catalog tab.
+
+If the browser does not auto-open, copy and paste the URL from terminal.
 
 
 ====================================================================
-9) ADMIN CATALOG WORKFLOW
+9) STEP 7 - VALIDATE END-TO-END FLOW
 ====================================================================
 
+Customer Assistant quick test:
+1. Enter this prompt:
+   Suggest affordable products for cleaning kitchen floors.
+2. Click Get Personalized Recommendations.
+3. Confirm summary, product cards, and processing trace are shown.
+
+Admin Catalog quick test:
 1. Open Admin Catalog tab.
-2. Review product table and metrics.
-3. Import catalog file (CSV, JSON, or PDF).
-4. Choose Replace existing catalog on/off.
-5. Click Ingest.
-6. Click Sync catalog to Azure AI Search.
-
-Manual product entry:
-- Name and description are required.
-- Tags, use cases, and benefits can be comma-separated.
+2. Confirm current products are visible.
+3. Optionally upload CSV, JSON, or PDF catalog.
+4. Click Ingest.
+5. Click Sync catalog to Azure AI Search.
 
 
 ====================================================================
-10) CATALOG DATA GUIDELINES
+10) STEP 8 - STOP THE APPLICATION
 ====================================================================
 
-Accepted import types:
-- CSV
-- JSON
-- PDF (tabular extraction via Document Intelligence)
-
-Recommended fields:
-- id (optional)
-- sku (optional)
-- name or product_name or title
-- category
-- description
-- price
-- rating
-- tags
-- use_cases
-- benefits
-- image_hints
-
-Best practices:
-- Use clear product names.
-- Keep descriptions specific and practical.
-- Add meaningful tags (for example: cordless, pet-hair, HEPA).
+In the Streamlit terminal, press:
+- Ctrl + C
 
 
 ====================================================================
 11) TROUBLESHOOTING
 ====================================================================
 
+Issue: App does not start
+Actions:
+1. Confirm (.venv) is active.
+2. Reinstall dependencies.
+3. Run startup command again.
+
 Issue: Azure datastore unavailable message
-Fix:
-1. Verify search values in .env.
-2. Confirm Azure AI Search index exists and is reachable.
-3. Use Admin Catalog > Sync catalog to Azure AI Search.
+Actions:
+1. Verify AZURE_SEARCH_ENDPOINT, AZURE_SEARCH_API_KEY, AZURE_SEARCH_INDEX_NAME.
+2. Confirm Azure AI Search index is reachable.
+3. Click Sync catalog to Azure AI Search in Admin Catalog.
 
-Issue: Module import or package errors
-Fix:
-1. Ensure .venv is activated.
-2. Reinstall packages:
-   .\.venv\Scripts\python -m pip install -r requirements.txt
-
-Issue: No image-based matching
-Fix:
-1. Verify AZURE_VISION_ENDPOINT and AZURE_VISION_KEY.
-2. Retry with a clearer image.
-
-Issue: Voice capture unavailable
-Fix:
-1. Check Streamlit version and browser microphone permission.
-2. Verify AZURE_SPEECH_KEY and AZURE_SPEECH_REGION.
-
-Issue: Updated catalog not reflected in recommendations
-Fix:
-1. Re-run catalog sync from Admin Catalog.
-2. Retry query.
+Issue: Voice or image feature not working
+Actions:
+1. Verify corresponding keys in .env.
+2. Check browser microphone permissions for voice.
+3. Retry with clear audio/image input.
 
 
 ====================================================================
-12) STOP THE APP
+12) OPERATIONAL NOTES
 ====================================================================
 
-In the terminal running Streamlit, press:
-- Ctrl + C
-
-
-====================================================================
-13) GITHUB AND GITHUB PAGES PUBLICATION
-====================================================================
-
-This repository includes a GitHub Pages-ready manual source at:
-- docs\index.md
-
-To publish the manual webpage:
-1. Push this repository to GitHub.
-2. Open repository Settings > Pages.
-3. Under Build and deployment, choose Deploy from a branch.
-4. Select branch main and folder /docs.
-5. Save and wait for deployment.
-
-Result:
-- Manual is published at https://<your-github-username>.github.io/<repo-name>/
+- Recommendations are catalog-grounded.
+- Catalog import supports CSV, JSON, and PDF.
+- Unconfigured Azure services appear as offline in the UI.
 
 
 ====================================================================
-14) QUICK START COMMANDS
+13) UPDATE HOSTED GITHUB PAGES MANUAL
 ====================================================================
 
+Hosted page:
+https://srisatyakrishna5.github.io/recommendation-engine/
+
+Source file for hosted manual:
+docs\index.md
+
+To publish manual updates:
+1. Edit docs\index.md.
+2. Commit and push to main branch.
+3. Ensure GitHub Pages source is main branch and /docs folder.
+4. Wait for deployment.
+5. Refresh hosted page URL.
+
+
+====================================================================
+14) QUICK COMMAND BLOCK
+====================================================================
+
+git clone https://github.com/srisatyakrishna5/recommendation-engine.git
+cd recommendation-engine
 python -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
 .\.venv\Scripts\python -m pip install -r requirements.txt
+Copy-Item .env.template .env
 $env:PYTHONPATH = "src"
 .\.venv\Scripts\python -m streamlit run app.py
