@@ -96,14 +96,9 @@ Copy-Item .env.template .env
 
 Open `.env` and update values.
 
-Minimum required keys (must be set):
-
 - `AZURE_SEARCH_ENDPOINT`
 - `AZURE_SEARCH_API_KEY`
 - `AZURE_SEARCH_INDEX_NAME`
-
-Optional keys (enable additional capabilities):
-
 - `AZURE_OPENAI_ENDPOINT`
 - `AZURE_OPENAI_API_KEY`
 - `AZURE_OPENAI_DEPLOYMENT`
